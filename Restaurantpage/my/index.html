@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSIT Restaurant</title>
+
+<style>
+body{margin:0;font-family:Arial;background:#f5f5f5;}
+header{background:black;color:white;padding:15px;text-align:center;font-size:24px;font-weight:bold;}
+
+/* RESTAURANT BANNER */
+.banner img{
+width:100%;
+height:250px;
+object-fit:cover;
+display:block;
+}
+
+.nav{display:flex;justify-content:center;gap:10px;background:#222;padding:10px;}
+.nav button{padding:10px 16px;border:none;border-radius:6px;cursor:pointer;font-weight:bold;color:white;}
+.menu-btn{background:gold;color:black;}
+.cart-btn{background:orange;}
+.address-btn{background:green;}
+.order-btn{background:purple;}
+
+.container{max-width:900px;margin:25px auto;background:white;padding:20px;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.2);}
+.section{display:none;}
+.active{display:block;}
+
+.menu-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:15px;
+}
+
+.card{
+border:1px solid #ddd;
+border-radius:10px;
+padding:10px;
+text-align:center;
+box-shadow:0 2px 6px rgba(0,0,0,0.15);
+}
+
+.card img{
+width:100%;
+height:140px;
+object-fit:cover;
+border-radius:8px;
+}
+
+button{cursor:pointer;border:none;border-radius:5px;padding:6px 10px;}
+.add{background:gold;}
+.remove{background:red;color:white;margin-left:10px;}
+.place{background:green;color:white;width:100%;padding:12px;margin-top:10px;}
+
+input,textarea,select{width:100%;padding:10px;margin:8px 0;}
+.total{font-size:18px;font-weight:bold;text-align:right;margin-top:10px;}
+
+.success{color:green;text-align:center;font-size:20px;display:none;margin-top:10px;}
+</style>
+</head>
+
+<body>
+
+<header>🍽️ SSIT Restaurant</header>
+
+
+
+</div>
+
+<div class="nav">
+<button class="menu-btn" onclick="showSection('menu')">Menu</button>
+<button class="cart-btn" onclick="showSection('cart')">Cart</button>
+<button class="address-btn" onclick="showSection('address')">Address</button>
+<button class="order-btn" onclick="showSection('orders')">Orders</button>
+</div>
+
+<div class="container">
+
+<!-- MENU -->
+<div id="menu" class="section active">
+<h2>Menu</h2>
+<div class="menu-grid" id="menuList"></div>
+</div>
+
+<!-- CART -->
+<div id="cart" class="section">
+<h2>🛒 Cart</h2>
+<div id="cartItems">Cart empty</div>
+<div class="total">Total ₹<span id="total">0</span></div>
+<button class="place" onclick="goToAddress()">Proceed to Order</button>
+</div>
+
+<!-- ADDRESS -->
+<div id="address" class="section">
+<h2>Delivery Address</h2>
+
+<input id="name" placeholder="Your Name">
+<input id="phone" placeholder="Phone Number">
+<textarea id="addr" placeholder="Full Address"></textarea>
+
+<select id="payment">
+<option value="">Select Payment</option>
+<option>Cash</option>
+<option>UPI</option>
+<option>Card</option>
+</select>
+
+<button class="place" onclick="placeOrder()">Place Order</button>
+<div class="success" id="success">✅ Order Placed Successfully!</div>
+</div>
+
+<!-- ORDERS -->
+<div id="orders" class="section">
+<h2>Your Orders</h2>
+<div id="orderList">No orders yet</div>
+</div>
+
+</div>
+
+<script>
+/* FOOD LIST */
+const foods = [
+  { name: "Masala Dosa", price: 80, img: "masala.jpg" },
+  { name: "Idli", price: 50, img: "idli.jpg" },
+  { name: "Rice Bath", price: 60, img: "ricebath.jpg" },
+  { name: "Gobi Manchurian", price: 60, img: "gobi.jpg" },
+  { name: "Pani Puri", price: 40, img: "panipuri.jpg" },
+  { name: "Fried Rice", price: 70, img: "fried-rice.jpg" },
+  { name: "Noodles", price: 75, img: "noodles.jpg" },
+  { name: "Paneer Butter Masala", price: 120, img: "paneer.jpg" },
+  { name: "Butter Roti", price: 25, img: "butter-roti.jpg" },
+  { name: "Curd Rice", price: 50, img: "curd-rice.jpg" },
+  { name: "Tea", price: 15, img: "tea.jpg" },
+  { name: "Coffee", price: 15, img: "coffee.jpg" }
+];
+
+let cart = [];
+let orders = [];
+
+const menuDiv = document.getElementById("menuList");
+const cartDiv = document.getElementById("cartItems");
+const totalSpan = document.getElementById("total");
+const orderDiv = document.getElementById("orderList");
+
+/* SWITCH SECTION */
+function showSection(id){
+document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+}
+
+/* DISPLAY MENU */
+foods.forEach((f,i)=>{
+menuDiv.innerHTML += `
+<div class="card">
+<img src="${f.img}">
+<h3>${f.name}</h3>
+<p>₹${f.price}</p>
+<button class="add" onclick="addToCart(${i})">Add</button>
+</div>`;
+});
+
+/* ADD TO CART */
+function addToCart(i){
+cart.push(foods[i]);
+updateCart();
+}
+
+/* REMOVE ITEM */
+function removeItem(i){
+cart.splice(i,1);
+updateCart();
+}
+
+/* UPDATE CART */
+function updateCart(){
+if(cart.length===0){
+cartDiv.innerHTML="Cart empty";
+totalSpan.innerText=0;
+return;
+}
+
+let total=0;
+cartDiv.innerHTML="";
+
+cart.forEach((item,i)=>{
+cartDiv.innerHTML += `
+${item.name} - ₹${item.price}
+<button class="remove" onclick="removeItem(${i})">X</button><br>`;
+total += item.price;
+});
+
+totalSpan.innerText = total;
+}
+
+/* GO TO ADDRESS */
+function goToAddress(){
+if(cart.length===0){
+alert("Cart is empty");
+return;
+}
+showSection("address");
+}
+
+/* PLACE ORDER */
+function placeOrder(){
+const name=document.getElementById("name").value.trim();
+const phone=document.getElementById("phone").value.trim();
+const addr=document.getElementById("addr").value.trim();
+const pay=document.getElementById("payment").value;
+
+if(cart.length===0) return alert("Cart empty");
+if(!name||!phone||!addr||!pay)
+return alert("Please fill complete address details");
+
+orders.push({items:[...cart]});
+
+cart=[];
+updateCart();
+updateOrders();
+
+document.getElementById("success").style.display="block";
+setTimeout(()=>{document.getElementById("success").style.display="none";},3000);
+
+showSection("orders");
+}
+
+/* SHOW ORDERS */
+function updateOrders(){
+if(orders.length===0){
+orderDiv.innerHTML="No orders yet";
+return;
+}
+
+orderDiv.innerHTML="";
+
+orders.forEach((o,i)=>{
+let total=o.items.reduce((s,it)=>s+it.price,0);
+let foodList=o.items.map(it=>it.name).join(", ");
+
+orderDiv.innerHTML += `
+<b>Order ${i+1}</b><br>
+Foods: ${foodList}<br>
+Total ₹${total}<br>
+<button class="remove" onclick="cancelOrder(${i})">Cancel Order</button>
+<hr>`;
+});
+}
+
+/* CANCEL ORDER */
+function cancelOrder(i){
+orders.splice(i,1);
+updateOrders();
+}
+</script>
+
+</body>
+</html>
